@@ -13,11 +13,10 @@ MY_P=${P/networkmanager/NetworkManager}
 
 DESCRIPTION="Network configuration and management in an easy way. Desktop environment independent."
 HOMEPAGE="http://www.gnome.org/projects/NetworkManager/"
-SRC_URI=""
 LICENSE="GPL-2"
 SLOT="0"
 KEYWORDS=""
-IUSE="doc nss gnutls dhclient dhcpcd resolvconf"
+IUSE="avahi doc nss gnutls dhclient dhcpcd resolvconf connection-sharing"
 
 RDEPEND=">=sys-apps/dbus-1.2
 	>=dev-libs/dbus-glib-0.75
@@ -26,9 +25,9 @@ RDEPEND=">=sys-apps/dbus-1.2
 	>=dev-libs/glib-2.16
 	>=sys-auth/policykit-0.8
 	>=dev-libs/libnl-1.1
-	>=net-wireless/wpa_supplicant-0.5.10
+	>=net-wireless/wpa_supplicant-0.5.10[dbus]
 	|| ( sys-libs/e2fsprogs-libs <sys-fs/e2fsprogs-1.41.0 )
-
+	avahi? ( net-dns/avahi[autoipd] )
 	gnutls? (
 		nss? ( >=dev-libs/nss-3.11 )
 		!nss? ( dev-libs/libgcrypt
@@ -40,13 +39,17 @@ RDEPEND=">=sys-apps/dbus-1.2
 		!dhcpcd? ( >=net-misc/dhcp-3.0.0 ) )
 	!dhclient? ( >=net-misc/dhcpcd-4.0.0_rc3 )
 
+	connection-sharing? (
+		net-dns/dnsmasq
+		net-firewall/iptables )
+
 	resolvconf? ( net-dns/openresolv )"
 
 DEPEND="${RDEPEND}
 	dev-util/pkgconfig
 	dev-util/intltool
 	net-dialup/ppp
-	>=dev-util/gtk-doc-1.8"
+	doc? ( >=dev-util/gtk-doc-1.8 )"
 
 S=${WORKDIR}/${MY_P}
 
@@ -77,8 +80,6 @@ src_unpack() {
 }
 
 src_prepare() {
-	# Fix up the dbus conf file to use plugdev group
-	epatch "${FILESDIR}/networkmanager-confchanges.patch"
 	gtkdocize
 	intltoolize
 	eautoreconf
